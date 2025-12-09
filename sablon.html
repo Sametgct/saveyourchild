@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="{{ dil_kodu }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ baslik }} - Pedagog İncelemesi</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; background-color: #f9f9f9; color: #333; }
+        .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .badge { display: inline-block; padding: 8px 15px; border-radius: 50px; font-weight: bold; color: white; margin-bottom: 20px; }
+        .guvenli { background-color: #2ecc71; }
+        .riskli { background-color: #e74c3c; }
+        .summary-box { background-color: #f1f2f6; padding: 20px; border-left: 5px solid #3498db; margin: 20px 0; border-radius: 4px; }
+        .content { font-size: 1.1em; }
+        .footer { margin-top: 40px; font-size: 0.8em; color: #7f8c8d; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+        a.lang-link { display: inline-block; margin-top: 20px; text-decoration: none; color: #3498db; font-weight: bold; border: 1px solid #3498db; padding: 10px 20px; border-radius: 5px; transition: all 0.3s; }
+        a.lang-link:hover { background-color: #3498db; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="badge {{ sinif_adi }}">{{ karar_basligi }}</span>
+        <h1>{{ baslik }}</h1>
+        
+        <div class="summary-box">
+            <h3>Özet / Summary</h3>
+            <p>{{ ozet }}</p>
+        </div>
+
+        <div class="content">
+            <h2>Detaylı Analiz</h2>
+            <p>{{ detayli_icerik }}</p>
+        </div>
+
+        <a href="{{ diger_dil_linki }}" class="lang-link">🌍 Read in {{ diger_dil_ismi }}</a>
+
+        <div class="footer">
+            <p>Bu rapor Yapay Zeka (Gemini) tarafından oluşturulmuştur / AI Generated Report</p>
+        </div>
+    </div>
+</body>
+</html>
