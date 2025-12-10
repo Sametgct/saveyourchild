@@ -11,7 +11,6 @@ import re
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
-    # Yerelde test ediyorsan buraya kendi keyini yazabilirsin
     API_KEY = "BURAYA_API_KEY_GELECEK"
 
 genai.configure(api_key=API_KEY)
@@ -51,7 +50,7 @@ def html_olustur(veri, dil):
 def sesi_indir_ve_yukle(video_url):
     dosya_adi = f"temp_{int(time.time())}"
     
-    # --- YOUTUBE MASKELEME AYARLARI (GÜNCELLENDİ) ---
+    # --- YOUTUBE MASKELEME AYARLARI ---
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': f'{dosya_adi}.%(ext)s',
@@ -65,12 +64,11 @@ def sesi_indir_ve_yukle(video_url):
         }
     }
     
-    indirilen_dosya = f"{dosya_adi}.m4a" # Varsayılan
+    indirilen_dosya = f"{dosya_adi}.m4a"
     st.info("☁️ Sunucu videoyu işliyor... (YouTube engeli aşılmaya çalışılıyor)")
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # Gerçek dosya uzantısını öğren
             info = ydl.extract_info(video_url, download=True)
             ext = info.get('ext', 'm4a')
             indirilen_dosya = f"{dosya_adi}.{ext}"
@@ -78,26 +76,23 @@ def sesi_indir_ve_yukle(video_url):
         st.text("📤 Gemini'ye aktarılıyor...")
         uploaded_file = genai.upload_file(path=indirilen_dosya)
         
-        # İşlenmesini bekle
         while uploaded_file.state.name == "PROCESSING":
             time.sleep(2)
             uploaded_file = genai.get_file(uploaded_file.name)
             
-        # Temizlik (SSD Koruması)
+        # Temizlik
         if os.path.exists(indirilen_dosya):
             os.remove(indirilen_dosya)
             
         return uploaded_file
     except Exception as e:
         st.warning(f"Ses indirilemedi. Sebep: {e}")
-        # Hata olsa bile dosyayı sil
         if os.path.exists(indirilen_dosya):
             try: os.remove(indirilen_dosya)
             except: pass
         return None
 
 def analiz_motoru(video_url):
-    # Video ID Çıkarma
     if "v=" in video_url: video_id = video_url.split("v=")[1].split("&")[0]
     elif "youtu.be" in video_url: video_id = video_url.split("/")[-1]
     else: video_id = video_url
@@ -120,7 +115,6 @@ def analiz_motoru(video_url):
     CONTENT: (Content)
     """
 
-    # 1. Deneme: Altyazı (En Hızlısı)
     try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['tr', 'en'])
         text = " ".join([i['text'] for i in transcript])
@@ -129,7 +123,6 @@ def analiz_motoru(video_url):
         response = model.generate_content(final_prompt)
         return response.text
     except:
-        # 2. Deneme: Ses İndirme (YouTube Engeline Takılabilir)
         st.warning("⚠️ Altyazı yok, ses analizi deneniyor...")
         ses_dosyasi = sesi_indir_ve_yukle(video_url)
         if ses_dosyasi:
@@ -157,5 +150,27 @@ if st.button("Analiz Et"):
                     parts = ham_sonuc.split("---AYRAC---")
                     tr_kisim, en_kisim = parts[0], parts[1]
                     
-                    # Veri Çıkarma
                     tr_baslik = tr_kisim.split("BAŞLIK:")[1].split("\n")[0].strip()
+                    tr_ozet = tr_kisim.split("ÖZET:")[1].split("İÇERİK:")[0].strip()
+                    tr_karar = tr_kisim.split("KARAR:")[1].split("\n")[0].strip()
+                    tr_icerik = tr_kisim.split("İÇERİK:")[1].strip()
+                    
+                    st.divider()
+                    if "GÜVENLİ" in tr_karar.upper():
+                        st.success(f"✅ {tr_karar}")
+                    else:
+                        st.error(f"🚨 {tr_karar}")
+                    
+                    st.write(f"**{tr_baslik}**")
+                    st.info(tr_ozet)
+                    
+                    html_tr = html_olustur({
+                        'baslik': tr_baslik, 'ozet': tr_ozet, 'karar': tr_karar, 
+                        'karar_detay': 'Sonuç', 'icerik': tr_icerik, 'diger_link': '#', 'url_slug': 'rapor'
+                    }, "tr")
+                    
+                    if html_tr:
+                        st.download_button("🇹🇷 Raporu İndir", data=html_tr, file_name="analiz.html", mime="text/html")
+                        
+                except Exception as e:
+                    st.error(f"Sonuç okunamadı: {e}")
