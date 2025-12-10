@@ -1,5 +1,5 @@
 streamlit
 google-generativeai
 youtube-transcript-api
-yt-dlp
+yt-dlp>=2024.11.04
 jinja2
